@@ -12,9 +12,18 @@ h1{
     font-size: 20px;
 }
 
+h2{
+    color:#222121;
+    margin-top:0;
+}
+
 i{
     font-size: 15px;
     cursor: pointer;
+}
+
+i[class="fa-solid fa-reply"]:hover{
+    color:#0F8CDF;
 }
 
 .fa-solid{
@@ -53,7 +62,7 @@ textarea{
     resize: none;
     padding: 10px;
     margin: 0 0 20px 0;
-    height: 60px;
+    height: 80px;
     width: 100%;
     font-size: 20px;
     line-height: 30px;
@@ -78,12 +87,14 @@ button{
     padding: 20px 0 0 0;
     width: 100%;
     margin: 15px 0;
+   
 }
 
 .tweet-inner{
     display: flex;
     align-items: flex-start;
     gap: 10px;
+    position: relative;
 }
 
 .tweet-details{
@@ -116,6 +127,99 @@ button{
     width: 207px;
     font-size: 14px;
     line-height: 20px;
+}
+
+/* modal box + input */
+
+.modal-background{
+    position:fixed;
+    display: flex;
+    background-color: rgb(0,0,0, 0.8);
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    align-items: center;
+}
+
+.modal-box{
+    position: relative;
+    text-align: center;
+    width:500px;
+    height:260px;
+    margin:auto;
+    background: white;
+    padding: 20px;
+    border-radius:5px;
+}
+
+.modal-inner{
+    display: flex;
+    align-items: start;
+    justify-content: center;
+    width:400px;
+    gap:15px;
+    margin: 30px auto 10 auto;
+}
+
+#modal-input{
+    background:  inherit;
+    width: 300px; 
+    height:100px;
+    border:solid 1px grey;
+    border-radius:10px;
+}
+
+#close-module-btn{
+    position: absolute;
+    top:10px;
+    right:10px;
+    font-size: 20px;
+}
+
+.reply-btn{
+    width: 75%;
+}
+
+/*trash icon*/
+i[class="fa-solid fa-trash"]{
+    bottom:0;
+    right:0;
+    position: absolute;
+}
+
+i[class="fa-solid fa-trash"]:hover{
+    color:red;
+}
+
+.confirm-box{
+    text-align: center;
+    width:500px;
+    height:100px;
+    margin:auto;
+    background: white;
+    padding: 20px;
+    border-radius:5px;
+}
+
+.confirm-btn{
+    width:40%;
+    background: #555;
+}
+
+.confirm-inner{
+    display: flex;
+    justify-content: space-around;
+}
+
+.confirm-yes:hover{
+    background-color: red;
+    color: #222121
+}
+
+.confirm-no:hover{
+    background: #1DA1F2;
+    color: #222121
 }
 
 /* images */

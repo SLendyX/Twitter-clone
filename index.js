@@ -1,5 +1,16 @@
-import { tweetsData } from './data.js'
+import { tweetsData as datajs } from './data.js'
 import { v4 as uuidv4 } from 'https://jspm.dev/uuid';
+
+const responseInput = document.getElementById('modal-input')
+const modalBox =  document.getElementById('modal-box')
+const confirmYesBtn = document.getElementById('confirm-yes')
+let tweetsData = datajs 
+
+if(localStorage.getItem('data')){
+    tweetsData = JSON.parse(localStorage.getItem('data'))
+}else{
+    localStorage.setItem('data', JSON.stringify(tweetsData))
+}
 
 document.addEventListener('click', function(e){
     if(e.target.dataset.like){
@@ -13,7 +24,18 @@ document.addEventListener('click', function(e){
     }
     else if(e.target.id === 'tweet-btn'){
         handleTweetBtnClick()
-    }
+    }else if(e.target.id === 'close-module-btn'){
+        handleCloseModuleBtnClick()
+    }else if(e.target.dataset.respond){
+        handleRespondBtnClick(e.target.dataset.respond)
+    }else if(e.target.id === 'reply-btn'){
+        handleModalSendBtnClick(responseInput.dataset.response)
+    }else if(e.target.dataset.delete)
+        handleDeleteBtnClick(e.target.dataset.delete)
+    else if(e.target.id === 'confirm-yes')
+        handleDeleteConfirmClick(confirmYesBtn.dataset.deleteItem)
+    else if(e.target.id === 'confirm-no')
+        handleDeleteBtnClick()
 })
  
 function handleLikeClick(tweetId){ 
@@ -48,6 +70,7 @@ function handleRetweetClick(tweetId){
 
 function handleReplyClick(replyId){
     document.getElementById(`replies-${replyId}`).classList.toggle('hidden')
+
 }
 
 function handleTweetBtnClick(){
@@ -55,7 +78,7 @@ function handleTweetBtnClick(){
 
     if(tweetInput.value){
         tweetsData.unshift({
-            handle: `@Scrimba`,
+            handle: `@Scrimba ✅`,
             profilePic: `images/scrimbalogo.png`,
             likes: 0,
             retweets: 0,
@@ -69,6 +92,53 @@ function handleTweetBtnClick(){
     tweetInput.value = ''
     }
 
+}
+
+function handleCloseModuleBtnClick(){
+    modalBox.classList.toggle('hidden')
+}
+
+function handleRespondBtnClick(tweetId){
+    const tweetObject = tweetsData.filter(function(tweet){
+        return tweet.uuid === tweetId;
+    })[0]
+    const username = tweetObject.handle
+    modalBox.classList.toggle('hidden')
+    document.getElementById('response-message').textContent = `Responding to ${username}'s post`
+    responseInput.dataset.response = tweetId
+}
+
+function handleModalSendBtnClick(tweetId){
+    const tweetObject = tweetsData.filter(function(tweet){
+        return tweet.uuid === tweetId;
+    })[0]
+
+    if(responseInput.value){
+        tweetObject.replies.unshift({
+            handle: `@Scrimba ✅`,
+            profilePic: `images/scrimbalogo.png`,
+            tweetText: responseInput.value
+        })
+        responseInput.value = ''
+        modalBox.classList.toggle('hidden')
+        render();
+    }
+}
+
+function handleDeleteBtnClick(tweetId){
+    document.getElementById("delete-confirm").classList.toggle('hidden')
+    document.getElementById("confirm-yes").dataset.deleteItem = tweetId
+}
+
+function handleDeleteConfirmClick(tweetId){
+    const tweetObject = tweetsData.filter(function(tweet){
+        return tweet.uuid === tweetId;
+    })[0]
+    const tweetObjectIndex = tweetsData.indexOf(tweetObject);
+    tweetsData.splice(tweetObjectIndex,1)
+    document.getElementById("delete-confirm").classList.toggle('hidden')
+    console.log(tweetsData)
+    render();
 }
 
 function getFeedHtml(){
@@ -133,6 +203,13 @@ function getFeedHtml(){
                     ></i>
                     ${tweet.retweets}
                 </span>
+                <span>
+                    <i class="fa-solid fa-reply"
+                    data-respond="${tweet.uuid}"></i>
+                </span>
+                <span>
+                    <i class="fa-solid fa-trash" data-delete="${tweet.uuid}"></i>
+                </span>
             </div>   
         </div>            
     </div>
@@ -146,7 +223,9 @@ function getFeedHtml(){
 }
 
 function render(){
+    localStorage.setItem('data', JSON.stringify(tweetsData))
     document.getElementById('feed').innerHTML = getFeedHtml()
+
 }
 
 render()
