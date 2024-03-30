@@ -156,7 +156,7 @@ function handleDeleteConfirmClick(tweetId){
     }else{
         let replyObject
         
-        for(const tweet of tweetsData){
+        for(let tweet of tweetsData){
             const reply = tweet.replies.filter(function(reply){
                 return reply.uuid === tweetId
             })
