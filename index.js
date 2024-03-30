@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'https://jspm.dev/uuid';
 const responseInput = document.getElementById('modal-input')
 const modalBox =  document.getElementById('modal-box')
 const confirmYesBtn = document.getElementById('confirm-yes')
+const tweetInput = document.getElementById('tweet-input')
 let tweetsData = datajs 
 
 if(localStorage.getItem('data')){
@@ -11,6 +12,16 @@ if(localStorage.getItem('data')){
 }else{
     localStorage.setItem('data', JSON.stringify(tweetsData))
 }
+
+tweetInput.addEventListener("keypress", function(e){
+    if(e.key === "Enter")
+        handleTweetBtnClick()
+})
+
+responseInput.addEventListener("keypress", function(e){
+    if(e.key === "Enter")
+        handleModalSendBtnClick(responseInput.dataset.response)
+})
 
 document.addEventListener('click', function(e){
     if(e.target.dataset.like){
@@ -70,7 +81,7 @@ function handleRetweetClick(tweetId){
 
 function handleReplyClick(replyId){
     document.getElementById(`replies-${replyId}`).classList.toggle('hidden')
-
+    getReplyState()
 }
 
 function handleTweetBtnClick(){
@@ -86,6 +97,7 @@ function handleTweetBtnClick(){
             replies: [],
             isLiked: false,
             isRetweeted: false,
+            isOP: true,
             uuid: uuidv4()
         })
     render()
@@ -112,12 +124,15 @@ function handleModalSendBtnClick(tweetId){
     const tweetObject = tweetsData.filter(function(tweet){
         return tweet.uuid === tweetId;
     })[0]
+    
+    localStorage.setItem(tweetId, 'undefined');
 
     if(responseInput.value){
         tweetObject.replies.unshift({
             handle: `@Scrimba ✅`,
             profilePic: `images/scrimbalogo.png`,
-            tweetText: responseInput.value
+            tweetText: responseInput.value,
+            uuid: uuidv4()
         })
         responseInput.value = ''
         modalBox.classList.toggle('hidden')
@@ -131,13 +146,29 @@ function handleDeleteBtnClick(tweetId){
 }
 
 function handleDeleteConfirmClick(tweetId){
-    const tweetObject = tweetsData.filter(function(tweet){
+    let tweetObject = tweetsData.filter(function(tweet){
         return tweet.uuid === tweetId;
     })[0]
-    const tweetObjectIndex = tweetsData.indexOf(tweetObject);
-    tweetsData.splice(tweetObjectIndex,1)
-    document.getElementById("delete-confirm").classList.toggle('hidden')
-    console.log(tweetsData)
+    if(tweetObject){
+        const tweetObjectIndex = tweetsData.indexOf(tweetObject);
+        tweetsData.splice(tweetObjectIndex,1)
+        document.getElementById("delete-confirm").classList.toggle('hidden')
+    }else{
+        let replyObject
+        
+        for(const tweet of tweetsData){
+            const reply = tweet.replies.filter(function(reply){
+                return reply.uuid === tweetId
+            })
+            if(reply.length > 0){
+                replyObject = reply[0], tweetObject = tweet;
+                break;
+            }
+        }
+        const replyObjectIndex = tweetObject.replies.indexOf(replyObject)
+        tweetObject.replies.splice(replyObjectIndex, 1)
+        document.getElementById("delete-confirm").classList.toggle('hidden')
+    }
     render();
 }
 
@@ -157,26 +188,46 @@ function getFeedHtml(){
         if (tweet.isRetweeted){
             retweetIconClass = 'retweeted'
         }
+
+        let deleteIconClass = ''
+        
+        if(!tweet.isOP)
+            deleteIconClass = "hidden"
+
+        let replyState = 'hidden'
+
+        if(localStorage.getItem(tweet.uuid) === 'undefined')
+            replyState = ''
+        
+        console.log(replyState)
         
         let repliesHtml = ''
         
         if(tweet.replies.length > 0){
+            let deleteIcon;
             tweet.replies.forEach(function(reply){
+                if(reply.uuid)
+                    deleteIcon = ` <span>
+                    <i class="fa-solid fa-trash" data-delete="${reply.uuid}"></i>
+                <span>`
+                else
+                    deleteIcon = ""
                 repliesHtml+=`
-<div class="tweet-reply">
-    <div class="tweet-inner">
-        <img src="${reply.profilePic}" class="profile-pic">
-            <div>
-                <p class="handle">${reply.handle}</p>
-                <p class="tweet-text">${reply.tweetText}</p>
-            </div>
-        </div>
-</div>
-`
+                <div class="tweet-reply">
+                    <div class="tweet-inner">
+                        <img src="${reply.profilePic}" class="profile-pic">
+                            <div>
+                                <p class="handle">${reply.handle}</p>
+                                <p class="tweet-text">${reply.tweetText}</p>
+                            </div>
+                        ${deleteIcon}
+                    </div>
+                </div>
+                `
             })
         }
         
-          
+
         feedHtml += `
 <div class="tweet">
     <div class="tweet-inner">
@@ -208,12 +259,12 @@ function getFeedHtml(){
                     data-respond="${tweet.uuid}"></i>
                 </span>
                 <span>
-                    <i class="fa-solid fa-trash" data-delete="${tweet.uuid}"></i>
-                </span>
+                    <i class="${deleteIconClass} fa-solid fa-trash" data-delete="${tweet.uuid}"></i>
+                <span>
             </div>   
         </div>            
     </div>
-    <div class="hidden" id="replies-${tweet.uuid}">
+    <div class="${replyState}" id="replies-${tweet.uuid}">
         ${repliesHtml}
     </div>   
 </div>
@@ -222,10 +273,17 @@ function getFeedHtml(){
    return feedHtml 
 }
 
+function getReplyState(){
+    tweetsData.forEach(function(tweet){
+        if(tweet.replies.length > 0)
+        localStorage.setItem(tweet.uuid, JSON.stringify(document.getElementById(`replies-${tweet.uuid}`).classList[0]))
+    })
+}
+
 function render(){
     localStorage.setItem('data', JSON.stringify(tweetsData))
     document.getElementById('feed').innerHTML = getFeedHtml()
-
+    getReplyState()
 }
 
 render()
